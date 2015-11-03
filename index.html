@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Triangle Functional Tests</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <style>
+        #image-container {
+            display: flex;
+        }
+        
+        div {
+            margin: 20px;
+            font-size: 150%;
+        }
+        
+        input {
+            width: 100px;
+        }
+        
+        .vert {
+            transform: rotate(90deg);
+            //   width: 50px;
+            //   height: 100px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div>
+        <UL>
+            <LI>Software will allow the user to input 3 points on a 2-Dimensional space.</LI>
+            <LI>Software will draw triangle.</LI>
+            <LI> Software will allow the user to show</LI>
+            <UL>
+                <LI>coordinates of points</LI>
+                <LI>length of sides</LI>
+                <LI>type of triangle</LI>
+            </UL>
+        </UL>
+
+
+    </div>
+    <div id="image-container">
+        <canvas width="500" height="500"></canvas>
+        <div>
+            <span>Point 1: (0 - 500)</span>
+            <br/> x:
+            <input id="p1x" type="text" value="250" onChange="updateSlider()">
+            <input id="p1xs" type="range" value="250" min="0" max="500" onChange="updateBox()">y:
+            <input id="p1y" type="text" value="100" onChange="updateSlider()">
+            <input class="vert" id="p1ys" type="range" value="100" min="0" max="500" onChange="updateBox()">
+            <br/>
+            <br/>
+            <span>Point 2:(0 - 500)</span>
+            <br/> x:
+            <input id="p2x" type="text" value="150" onChange="updateSlider()">
+            <input id="p2xs" type="range" value="150" min="0" max="500" onChange="updateBox()">y:
+            <input id="p2y" type="text" value="250" onChange="updateSlider()">
+            <input class="vert" id="p2ys" type="range" value="250" min="0" max="500" onChange="updateBox()">
+            <br/>
+            <br/>
+            <span>Point 3:(0 - 500)</span>
+            <br/> x:
+            <input id="p3x" type="text" value="350" onChange="updateSlider()">
+            <input id="p3xs" type="range" value="350" min="0" max="500" onChange="updateBox()">y:
+            <input id="p3y" type="text" value="250" onChange="updateSlider()">
+            <input class="vert" id="p3ys" type="range" value="250" min="0" max="500" onChange="updateBox()">
+            <br/>
+            <input id="coords" type="checkbox" onClick="redrawTriangle()"> Show Coords
+            <br/>
+            <input id="length" type="checkbox" onClick="redrawTriangle()"> Show Length
+            <br/>
+            <input id="type" type="checkbox" onClick="redrawTriangle()"> Show Type
+            <br/>
+            <button id="draw" onClick="redrawTriangle()">Draw</button>
+
+        </div>
+    </div>
+    <script src="triangle.js"></script>
+    <script>
+        function redrawTriangle() {
+            var canvas = document.querySelector('canvas');
+            var ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            window.p1xText = document.getElementById('p1x').value;
+            window.p1yText = document.getElementById('p1y').value;
+            window.p2xText = document.getElementById('p2x').value;
+            window.p2yText = document.getElementById('p2y').value;
+            window.p3xText = document.getElementById('p3x').value;
+            window.p3yText = document.getElementById('p3y').value;
+
+            window.s1 = Math.round(calcDist(window.p1xText, window.p1yText, window.p2xText, window.p2yText));
+            window.s2 = Math.round(calcDist(window.p2xText, window.p2yText, window.p3xText, window.p3yText));
+            window.s3 = Math.round(calcDist(window.p1xText, window.p1yText, window.p3xText, window.p3yText));
+
+            //Draw Box
+            drawBox();
+            //Draw Triangle
+            if (canvas.getContext) {
+                var context = canvas.getContext('2d');
+                context.beginPath();
+                context.moveTo(window.p1xText, window.p1yText);
+                context.lineTo(window.p2xText, window.p2yText);
+                context.lineTo(window.p3xText, window.p3yText);
+                context.closePath();
+                context.lineWidth = 5;
+                context.stroke();
+                context.fillStyle = "rgb(0,128,255)";
+                context.fill();
+
+                //Draw Point
+                drawDot(window.p1xText, window.p1yText);
+                drawDot(window.p2xText, window.p2yText);
+                drawDot(window.p3xText, window.p3yText);
+
+                //Draw Coords Text
+                if (document.getElementById('coords').checked) {
+                    drawCoords("1", window.p1xText, window.p1yText);
+                    drawCoords("2", window.p2xText, window.p2yText);
+                    drawCoords("3", window.p3xText, window.p3yText);
+                }
+
+                //Draw Side Length Text
+                if (document.getElementById('length').checked) {
+                    drawLength(window.p1xText, window.p1yText, window.p2xText, window.p2yText);
+                    drawLength(window.p2xText, window.p2yText, window.p3xText, window.p3yText);
+                    drawLength(window.p1xText, window.p1yText, window.p3xText, window.p3yText);
+                }
+
+                //Draw Triangle Type Text
+                if (document.getElementById('type').checked) {
+                    var triType = triangleType();
+                    drawText(triType, "30px Arial", "center", "white", canvas.width / 2, canvas.height - 20)
+                }
+            } else {
+                alert('You need HTML5 compatible browser to see this demo.');
+            }
+
+        }
+
+        function drawText(text, style, align, color, x, y) {
+            var canvas = document.querySelector('canvas');
+            var context = canvas.getContext('2d');
+            context.font = style;
+            context.textAlign = align;
+            context.fillStyle = color;
+            context.fillText(text, x, y);
+            context.strokeStyle = "black";
+            context.lineWidth = 1;
+            context.strokeText(text, x, y);
+        }
+
+
+        function triangleType() {
+            if (!isTriangle()) {
+                return "not a triangle";
+            } else if (isEqualateral()) {
+                return "Equalateral";
+            } else if (isIsosceles()) {
+                return "Isosceles";
+            } else if (isScalene()) {
+                return "Scalene";
+            }
+            return "No idea what this is...";
+        }
+
+
+        //add <= to check for line condition
+        function isTriangle() {
+            var a = window.s1;
+            var b = window.s2;
+            var c = window.s3;
+
+            if (a > (b + c)) {
+                return false;
+            } else if (b > (a + c)) {
+                return false;
+            } else if (c > (a + b)) {
+                return false;
+            }
+            return true;
+        }
+
+        function isScalene() {
+            var a = window.s1;
+            var b = window.s2;
+            var c = window.s3;
+
+            if (isTriangle()) {
+                if ((a != b) && (b != c) && (c != a)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function isIsosceles() {
+            var a = window.s1;
+            var b = window.s2;
+            var c = window.s3;
+
+            if (isTriangle()) {
+                if (isEqualateral()) {
+                    return false;
+                } else if (a == b || b === c || c == a) {
+                    return true;
+                }
+            }
+            return false;
+
+        }
+
+        function isEqualateral() {
+            var a = window.s1;
+            var b = window.s2;
+            var c = window.s3;
+
+            if (isTriangle()) {
+                if (a == b && b == c) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function drawDot(x, y) {
+            var canvas = document.querySelector('canvas');
+            var context = canvas.getContext('2d');
+            var radius = 5;
+            context.beginPath();
+            context.arc(x, y, radius, 0, 2 * Math.PI, false);
+            context.fillStyle = 'white';
+            context.fill();
+            context.lineWidth = 1;
+            context.strokeStyle = '#003300';
+            context.stroke();
+        }
+
+        function drawCoords(point, x, y) {
+            var text = point + ' (' + x + ',' + y + ')';
+            drawText(text, "20px Impact", "left", "white", x, y);
+        }
+
+        function drawLength(x1, y1, x2, y2) {
+            var m1 = (parseInt(x1) + parseInt(x2)) / 2;
+            var m2 = (parseInt(y1) + parseInt(y2)) / 2;
+            var text = Math.round(calcDist(x1, y1, x2, y2));
+            drawText(text, "20px Impact", "left", "red", m1, m2);
+        }
+
+        function calcDist(x1, y1, x2, y2) {
+            var d = Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
+            console.log("calc - " + d);
+            return d;
+        }
+
+        function updateSlider() {
+            document.getElementById('p1xs').value = document.getElementById('p1x').value;
+            document.getElementById('p1ys').value = document.getElementById('p1y').value;
+            document.getElementById('p2xs').value = document.getElementById('p2x').value;
+            document.getElementById('p2ys').value = document.getElementById('p2y').value;
+            document.getElementById('p3xs').value = document.getElementById('p3x').value;
+            document.getElementById('p3ys').value = document.getElementById('p3y').value;
+            redrawTriangle();
+
+        }
+
+        function updateBox() {
+            document.getElementById('p1x').value = document.getElementById('p1xs').value;
+            document.getElementById('p1y').value = document.getElementById('p1ys').value;
+            document.getElementById('p2x').value = document.getElementById('p2xs').value;
+            document.getElementById('p2y').value = document.getElementById('p2ys').value;
+            document.getElementById('p3x').value = document.getElementById('p3xs').value;
+            document.getElementById('p3y').value = document.getElementById('p3ys').value;
+            redrawTriangle();
+        }
+
+        function drawBox() {
+            var canvas = document.querySelector('canvas');
+            var context = canvas.getContext('2d');
+            context.beginPath();
+            context.moveTo(0, 0);
+            context.lineTo(500, 0);
+            context.lineTo(500, 500);
+            context.lineTo(0, 500);
+            context.closePath();
+            context.fillStyle = "rgb(100,100,100)";
+            context.fill();
+            context.lineWidth = 5;
+            context.stroke();
+        }
+        
+        drawBox();
+
+    </script>
+
+</body>
+
+</html>
